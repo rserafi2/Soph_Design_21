@@ -6,9 +6,8 @@
 #include "lcd_driver.h"
 #include "port_macros.h"
 #define PWM_TOP 100
-#define TIME_CONSTANT 15300
+#define TIME_CONSTANT 14400
 #define WHEEL_OFFSET 0
-
 
 void stopLeftMotor(){
 	PORTD |= (1<<5);
@@ -67,34 +66,33 @@ void runInstruction(int movement, int speed, int time){
 	int pwm_counter=0;
 	int time_count = 0;
 	for(time_count=0; time_count < time; time_count++){
-	clock = 0;
-	while(clock < TIME_CONSTANT){
-		pwm_counter = pwm_counter + 1;
-		clock++;
-		if( pwm_counter >= PWM_TOP ){
-			pwm_counter = 0;
-		}
+		clock = 0;
+		while(clock < TIME_CONSTANT){
+			pwm_counter = pwm_counter + 1;
+			clock++;
+			if( pwm_counter >= PWM_TOP ){
+				pwm_counter = 0;
+			}
 
-		if( pwm_counter < speed ){
-			configLeftMotor(movement);
-		}
-		else{
-			stopLeftMotor();
-		}
+			if( pwm_counter < speed ){
+				configLeftMotor(movement);
+			}
+			else{
+				stopLeftMotor();
+			}
 
-		if( pwm_counter < speed - WHEEL_OFFSET){
-			configRightMotor(movement);
-		}
-		else{
-			stopRightMotor();
-		}
+			if( pwm_counter < speed - WHEEL_OFFSET){
+				configRightMotor(movement);
+			}
+			else{
+				stopRightMotor();
+			}
 
-		_delay_us(10);
+			_delay_us(10);
 	  }
 	}
 		stopLeftMotor();
 		stopRightMotor();
-		_delay_us(10);
 }
 
 int main(){
