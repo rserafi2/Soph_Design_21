@@ -6,7 +6,7 @@
 #include "lcd_driver.h"
 #include "port_macros.h"
 #define PWM_TOP 100
-#define TIME_CONSTANT 14400
+#define TIME_CONSTANT 14500
 #define WHEEL_OFFSET 0
 
 void stopLeftMotor(){
@@ -37,6 +37,9 @@ void configLeftMotor(int direction){
 			PORTD |= (1<<5);
 			PORTD &= ~(1<<6);
 			break;
+		default:
+			PORTD |= (1<<5);
+			PORTD |= (1<<6);
 	}
 }
 
@@ -58,6 +61,9 @@ void configRightMotor(int direction){
 			PORTD |= (1<<3);
 			PORTB &= ~(1<<3);
 			break;
+		default:
+			PORTD |= (1<<3);
+			PORTD |= (1<<3);
 	}
 }
 
@@ -81,7 +87,7 @@ void runInstruction(int movement, int speed, int time){
 				stopLeftMotor();
 			}
 
-			if( pwm_counter < speed - WHEEL_OFFSET){
+			if( pwm_counter < speed){
 				configRightMotor(movement);
 			}
 			else{
@@ -293,8 +299,10 @@ int main(){
 	}
 
 	//Robot movement according to instructions
+	runInstruction(5,0,10);
 	for(j=0; j<command_count; j++){
 		runInstruction(movement[j],speed[j],time[j]);
+		runInstruction(5,0,5);
 	}
 	return 0;
 }
