@@ -71,6 +71,10 @@ void runInstruction(int movement, int speed, int time){
 	int clock = 0;
 	int pwm_counter=0;
 	int time_count = 0;
+	int wheeloff = 0;
+	if (movement == 3){
+		wheeloff = 1;
+	}
 	for(time_count=0; time_count < time; time_count++){
 		clock = 0;
 		while(clock < TIME_CONSTANT){
@@ -80,7 +84,7 @@ void runInstruction(int movement, int speed, int time){
 				pwm_counter = 0;
 			}
 
-			if( pwm_counter < speed ){
+			if( pwm_counter < speed - wheeloff ){
 				configLeftMotor(movement);
 			}
 			else{
