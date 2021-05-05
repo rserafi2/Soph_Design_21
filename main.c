@@ -1,20 +1,12 @@
 #include <stdint.h>
-
 #include <stdio.h>
-
 #include <string.h>
-
 #include <util/delay.h>
-
 #include <avr/io.h>
-
 #include "lcd_driver.h"
-
 #include "port_macros.h"
-
 #define PWM_TOP 100
 #define TIME_CONSTANT 14500
-#define WHEEL_OFFSET 0
 
 void stopLeftMotor() {
   PORTD |= (1 << 5);
@@ -75,23 +67,24 @@ void configRightMotor(int direction) {
 }
 
 void runInstruction(int movement, int speed, int time) {
-  int clock = 0;
+  int move_time = 0;
   int pwm_counter = 0;
-  int time_count = 0;
-  int wheeloff = 0;
+  int wheel_offset = 0;
+  int time_count;
   if (movement == 3) {
-    wheeloff = 1;
+    wheel_offset = 1;
   }
+
   for (time_count = 0; time_count < time; time_count++) {
-    clock = 0;
-    while (clock < TIME_CONSTANT) {
+    move_time = 0;
+    while (move_time < TIME_CONSTANT) {
       pwm_counter = pwm_counter + 1;
-      clock++;
+      move_time++;
       if (pwm_counter >= PWM_TOP) {
         pwm_counter = 0;
       }
 
-      if (pwm_counter < speed - wheeloff) {
+      if (pwm_counter < speed - wheel_offset) {
         configLeftMotor(movement);
       } else {
         stopLeftMotor();
@@ -121,16 +114,16 @@ int main() {
   int movement[4];
   int speed[4];
   int time[4];
-  int command_count = 1;
-  int stage = 0;
-  int menu = 0;
-  int i = 0;
-  int j = 0;
-  int duration = 100;
-  char blanks[8] = "        ";
 
-  char row1[8];
-  char row2[8];
+  int stage = 0;
+  int command_max = 1;
+  int command_index = 0;
+  int move_type = 0;
+  int duration = 10;
+
+  char lcd_row1[8];
+  char lcd_row2[8];
+  char blanks[8] = "        ";
   //Configure Motors
 
   DDRD |= (1 << 5) | (1 << 6) | (1 << 3);
@@ -148,8 +141,6 @@ int main() {
   initialize_LCD_driver(); // Initialize LCD Driver
   LCD_execute_command(TURN_ON_DISPLAY); // Turn On LCD Display
   LCD_execute_command(CLEAR_DISPLAY); // Clear LCD Display
-  //stopRightMotor();
-  //stopLeftMotor();
 
   while (stage < 5) {
     //Pulser for middle button
@@ -182,23 +173,23 @@ int main() {
 
     //Start doing the interface
     if (stage == 0) {
-      strcpy(row1, "Commands");
+      strcpy(lcd_row1, "Commands");
       LCD_move_cursor_to_col_row(0, 0);
-      LCD_print_String(row1);
-      itoa(command_count, row2, 10);
+      LCD_print_String(lcd_row1);
+      itoa(command_max, lcd_row2, 10);
       LCD_move_cursor_to_col_row(0, 1);
-      LCD_print_String(row2);
+      LCD_print_String(lcd_row2);
 
       if (left_button_pressed == 1) {
-        command_count--;
-        if (command_count < 1) {
-          command_count = 1;
+        command_max--;
+        if (command_max < 1) {
+          command_max = 1;
         }
       }
       if (right_button_pressed == 1) {
-        command_count++;
-        if (command_count > 4) {
-          command_count = 4;
+        command_max++;
+        if (command_max > 4) {
+          command_max = 4;
         }
       }
       if (middle_button_pressed == 1) {
@@ -206,67 +197,67 @@ int main() {
         LCD_execute_command(CLEAR_DISPLAY);
       }
     } else if (stage == 1) {
-      strcpy(row1, "Movement");
+      strcpy(lcd_row1, "Movement");
       LCD_move_cursor_to_col_row(0, 0);
-      LCD_print_String(row1);
-      if (menu == 0) {
-        strcpy(row2, "CCW     ");
-      } else if (menu == 1) {
-        strcpy(row2, "CW      ");
-      } else if (menu == 2) {
-        strcpy(row2, "FORWARD ");
-      } else if (menu == 3) {
-        strcpy(row2, "REVERSE ");
+      LCD_print_String(lcd_row1);
+      if (move_type == 0) {
+        strcpy(lcd_row2, "CCW     ");
+      } else if (move_type == 1) {
+        strcpy(lcd_row2, "CW      ");
+      } else if (move_type == 2) {
+        strcpy(lcd_row2, "FORWARD ");
+      } else if (move_type == 3) {
+        strcpy(lcd_row2, "REVERSE ");
       }
       LCD_move_cursor_to_col_row(0, 1);
-      LCD_print_String(row2);
+      LCD_print_String(lcd_row2);
 
       if (left_button_pressed == 1) {
-        menu--;
-        if (menu < 0) {
-          menu = 3;
+        move_type--;
+        if (move_type < 0) {
+          move_type = 3;
         }
       }
       if (right_button_pressed == 1) {
-        menu++;
-        if (menu > 3) {
-          menu = 0;
+        move_type++;
+        if (move_type > 3) {
+          move_type = 0;
         }
       }
       if (middle_button_pressed == 1) {
         LCD_execute_command(CLEAR_DISPLAY);
-        movement[i] = menu;
+        movement[command_index] = move_type;
         stage++;
       }
     } else if (stage == 2) {
-      strcpy(row1, "Speed");
-      LCD_print_String(row1);
+      strcpy(lcd_row1, "Speed");
+      LCD_print_String(lcd_row1);
       LCD_move_cursor_to_col_row(0, 1);
-      strcpy(row2, "S   M  F");
-      LCD_print_String(row2);
+      strcpy(lcd_row2, "S   M  F");
+      LCD_print_String(lcd_row2);
 
       if (left_button_pressed == 1) {
-        speed[i] = 20;
+        speed[command_index] = 20;
         stage++;
         LCD_execute_command(CLEAR_DISPLAY);
       }
       if (middle_button_pressed == 1) {
-        speed[i] = 40;
+        speed[command_index] = 40;
         stage++;
         LCD_execute_command(CLEAR_DISPLAY);
       }
       if (right_button_pressed == 1) {
-        speed[i] = 60;
+        speed[command_index] = 60;
         LCD_execute_command(CLEAR_DISPLAY);
         stage++;
       }
     } else if (stage == 3) {
       LCD_move_cursor_to_col_row(0, 0);
-      strcpy(row1, "Time");
-      LCD_print_String(row1);
-      itoa(duration, row2, 10);
+      strcpy(lcd_row1, "Time");
+      LCD_print_String(lcd_row1);
+      itoa(duration, lcd_row2, 10);
       LCD_move_cursor_to_col_row(0, 1);
-      LCD_print_String(row2);
+      LCD_print_String(lcd_row2);
       LCD_print_String(blanks);
 
       if (left_button_pressed == 1) {
@@ -279,13 +270,14 @@ int main() {
         duration++;
       }
       if (middle_button_pressed == 1) {
-        time[i] = duration;
+        time[command_index] = duration;
+        duration = 10;
         LCD_execute_command(CLEAR_DISPLAY);
         stage++;
       }
     } else if (stage == 4) {
-      i++;
-      if (i < command_count) {
+      command_index++;
+      if (command_index < command_max) {
         stage = 1;
       } else {
         stage++;
@@ -297,9 +289,10 @@ int main() {
   }
 
   //Robot movement according to instructions
+  int step;
   runInstruction(5, 0, 10);
-  for (j = 0; j < command_count; j++) {
-    runInstruction(movement[j], speed[j], time[j]);
+  for (step = 0; step < command_max; step++) {
+    runInstruction(movement[step], speed[step], time[step]);
     runInstruction(5, 0, 5);
   }
   return 0;
