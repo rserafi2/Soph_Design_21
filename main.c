@@ -192,6 +192,7 @@ int main() {
   LCD_execute_command(TURN_ON_DISPLAY);
   LCD_execute_command(CLEAR_DISPLAY);
 
+  //Interface part of program (Stages 0-4)
   while (interface_stage < 5) {
     // Pulser for middle button
     if ((PINB & (1 << 4)) != last_middle_button_state) {
@@ -268,7 +269,6 @@ int main() {
         printBotLCD("REVERSE ");
         break;
       }
-
       // Allows users to cycle options
       if (left_button_pressed == 1) {
         move_type--;
@@ -353,7 +353,8 @@ int main() {
   }
 
   runInstruction(4, 0, 10); // Robot pauses for 1 second
-  // Robot movement according to each instruction
+
+  // Robot movement part of the program
   for (instruction_step = 0; instruction_step < command_max; instruction_step++) {
     runInstruction(movement[instruction_step], speed[instruction_step], time[instruction_step]);
     runInstruction(4, 0, 5); // Pause for 0.5 seconds
