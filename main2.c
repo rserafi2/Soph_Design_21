@@ -203,7 +203,7 @@ int main() {
   DDRC &= ~(1<<SENSOR_0) & ~(1<<SENSOR_1) & ~(1<<SENSOR_2) & ~(1<<SENSOR_3) & ~(1<<SENSOR_4); //configure sensors
   PORTC |= (1<<SENSOR_0) | (1<<SENSOR_1) | (1<<SENSOR_2) | (1<<SENSOR_3) | (1<<SENSOR_4);
 
-  DDRB |= (1 << 2);
+  DDRB |= (1 << BUZZER);
 
   initialize_LCD_driver();
   LCD_execute_command(TURN_ON_DISPLAY);
