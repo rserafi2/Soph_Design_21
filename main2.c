@@ -15,9 +15,10 @@ counter-clockwise, speeds of 3 different settings, and time incremented by 0.1.
 #include "port_macros.h"
 #define PWM_TOP 100
 #define TIME_CONSTANT 1000
-#define SPEED_SLOW 20
-#define SPEED_MED 28
+#define SPEED_SLOW 10
+#define SPEED_MED 25
 #define SPEED_FAST 35
+#define BUZZER_VOL 85
 #define L_MOTOR_1 5
 #define L_MOTOR_2 6
 #define R_MOTOR_1 3
@@ -152,7 +153,7 @@ void setBuzzer(int time){
       pwm_counter = 0;
     }
     // Speed of each motor is based on pwm
-    if (pwm_counter < 85) {
+    if (pwm_counter < BUZZER_VOL) {
       PORTB |= (1 << BUZZER);
     } else {
       PORTB &= ~(1 << BUZZER);
@@ -306,13 +307,13 @@ int main() {
     if(bunker_found){
       if((!sensor_state[0] && !sensor_state[1] && sensor_state[2] && !sensor_state[3] && !sensor_state[4])||
          (!sensor_state[0] && sensor_state[1] && sensor_state[2] && sensor_state[3] && !sensor_state[4])){
-        moveBackward(70,10);
-        moveTurnRight(230,10);
+        moveBackward(70,SPEED_SLOW);
+        moveTurnRight(230,SPEED_SLOW);
         moveStop(250);
         bunker_found = 0;
       }
       else{
-        moveTurnLeft(1,10);
+        moveTurnLeft(1,SPEED_SLOW);
       }
     }
     else if(!on_black){
@@ -331,12 +332,12 @@ int main() {
           scanning = 1;
         }
         else{
-          moveTurnLeft(1,10);
+          moveTurnLeft(1,SPEED_SLOW);
         }
       }
       else if(scanning){
         if(sensor_state[0] && !sensor_state[1] && !sensor_state[2] && !sensor_state[3] && !sensor_state[4] ){
-          moveTurnRight(50+(rand()%200),10);
+          moveTurnRight(50+(rand()%200),SPEED_SLOW);
           moveStop(20);
           if(max_sensors_black < 4){
             setBuzzer(10000);
@@ -348,7 +349,7 @@ int main() {
           scanning = 0;
         }
         else{
-          moveTurnRight(1,10);
+          moveTurnRight(1,SPEED_SLOW);
           sensors_black = sensor_state[0] + sensor_state[1] + sensor_state[2] + sensor_state[3] + sensor_state[4];
           if(max_sensors_black < sensors_black){
             max_sensors_black = sensors_black;
@@ -373,8 +374,8 @@ int main() {
     }
     if((!sensor_state[0] && !sensor_state[1] && sensor_state[2] && !sensor_state[3] && !sensor_state[4])||
        (!sensor_state[0] && sensor_state[1] && sensor_state[2] && sensor_state[3] && !sensor_state[4])){
-      moveBackward(70,10);
-      moveTurnRight(230,40);
+      moveBackward(70,SPEED_SLOW);
+      moveTurnRight(230,SPEED_FAST);
       moveStop(2);
       setBuzzer(10000);
       setBuzzer(10000);
@@ -382,7 +383,7 @@ int main() {
       victory = 1;
     }
     else{
-      moveTurnLeft(1,10);
+      moveTurnLeft(1,SPEED_SLOW);
     }
   }
   printTopLCD("VICTORY!");
