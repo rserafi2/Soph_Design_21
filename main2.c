@@ -2,7 +2,7 @@
 Project: Sophomore Design Project Milestone 1
 Authors: Brian Ly, Ryan Serafin
 Description: This code was to make the Polulu 3pi into a robot that can navigate
-an enclosed area of black tape and claim bunkers which are 1 in x 1 in black 
+an enclosed area of black tape and claim bunkers which are 1 in x 1 in black
 tape with different speeds and claim amounts.
 */
 
@@ -168,6 +168,7 @@ int main() {
   unsigned int right_button_pressed = 0;
   unsigned int last_middle_button_state = (PINB & (1 << M_BUTTON));
   unsigned int middle_button_pressed = 0;
+  // Saves raw sensor data
   unsigned int sensor_data[5] = {
     (PINC & (1 << SENSOR_0)),
     (PINC & (1 << SENSOR_1)),
@@ -190,7 +191,7 @@ int main() {
   char bunkers_max_string[8];
   char bunkers_claimed_string[8];
   char blanks[8] = "        ";
-  int i;
+  int i;// used for a loop later. Had to be initialized due to error
 
   // Configure Motor pins and ports
   DDRD |= (1 << L_MOTOR_1) | (1 << L_MOTOR_2) | (1 << R_MOTOR_1);
@@ -242,13 +243,13 @@ int main() {
     } else {
       right_button_pressed = 0;
     }
-    
+
     //Interface stage of program
     switch (interface_stage) {
     case 0:
       printTopLCD("SPEED?  "); //Print "Speed?"
       printBotLCD("S  M  F "); //Print different modes of Speed
-      if (left_button_pressed == 1) { 
+      if (left_button_pressed == 1) {
         speed = SPEED_SLOW; //if Left button is pressed, speed is slow
       }
       if (middle_button_pressed == 1) {
@@ -263,7 +264,7 @@ int main() {
       break;
     case 1:
       printTopLCD("BUNKERS?"); //Print "BUNKERS?"
-      itoa(bunkers_max, bunkers_max_string, 10); //convert integer to string 
+      itoa(bunkers_max, bunkers_max_string, 10); //convert integer to string
       printBotLCD(bunkers_max_string); //print bunkers_max_string
       LCD_print_String(blanks); //print blanks after number so no visual glitch
 
@@ -282,20 +283,20 @@ int main() {
       break;
     }
   }
-  /*Robot runs program until the specified amount of bunkers are claimed. 
+  /*Robot runs program until the specified amount of bunkers are claimed.
   Below is the strategy:
     1. Move forward until a sensor reads black underneath it (a value of 1)
-    2. Once a sensor reads 1, have the robot sweep over the source of the black 
+    2. Once a sensor reads 1, have the robot sweep over the source of the black
     tape
-      a. if when sweeping, 4 or more sensors read 1 at the same time, the source 
-      must be a wall. Then it will turn around at a random angle and continue 
+      a. if when sweeping, 4 or more sensors read 1 at the same time, the source
+      must be a wall. Then it will turn around at a random angle and continue
       moving forward again.
-      b. if when sweeping, less than 4 sensors read 1 at the same time, the 
-      source must be a bunker. Then the buzzer will go off and it will back up 
-      from the bunker, turn around, and wait for a moment. It will then 
-      continue moving forward The bunker count will go up by one after finding a 
-      bunker. If it was the last bunker, then it will back up from the bunker, 
-      spin twice and beep while the robot is going, the sensor values will be 
+      b. if when sweeping, less than 4 sensors read 1 at the same time, the
+      source must be a bunker. Then the buzzer will go off and it will back up
+      from the bunker, turn around, and wait for a moment. It will then
+      continue moving forward. The bunker count will go up by one after finding
+      a bunker. If it was the last bunker, then it will back up from the bunker,
+      spin twice and beep while the robot is going. The sensor values will be
       displayed along with how many bunkers have already been found.
   */
   while (bunkers_claimed < bunkers_max) {
@@ -338,7 +339,7 @@ int main() {
       } else {
         moveTurnLeft(1, SPEED_SLOW);
       }
-    } else if (!on_black) { //If the robot is not sensing any black tape, then move forward a small amount. When a sensor reads 1, stop moving
+    } else if (!on_black) { //If the robot is not sensing any black tape, then move forward a small amount. When any sensor reads 1, stop moving
       if (sensor_state[0] || sensor_state[1] || sensor_state[2] || sensor_state[3] || sensor_state[4]) {
         moveStop(30);
         on_black = 1;
@@ -358,18 +359,18 @@ int main() {
         if (sensor_state[0] && !sensor_state[1] && !sensor_state[2] && !sensor_state[3] && !sensor_state[4]) {
           moveTurnRight(50 + (rand() % 200), SPEED_SLOW);
           moveStop(20);
-          if (max_sensors_black < 4) { //If there were not 4 or more sensors on at the smae time then a bunker must have been detected
+          if (max_sensors_black < 4) { //If there were not 4 or more sensors on at the same time then a bunker must have been detected
             setBuzzer(10000);
             bunkers_claimed++;
             bunker_found = 1;
           }
-          max_sensors_black = 0;
+          max_sensors_black = 0;//Reseting states
           on_black = 0;
           scanning = 0;
         } else {
           moveTurnRight(1, SPEED_SLOW);
           sensors_black = sensor_state[0] + sensor_state[1] + sensor_state[2] + sensor_state[3] + sensor_state[4];
-          if (max_sensors_black < sensors_black) {
+          if (max_sensors_black < sensors_black) {//Checks if the current amount of sensors reading a 1 is greater than the max from before
             max_sensors_black = sensors_black;
           }
         }
